@@ -22,12 +22,14 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . .
 
+# Setup directory permissions before composer install
+RUN mkdir -p /var/www/storage /var/www/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && \
+    chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
 # Install all PHP dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Setup directory permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-
 # Expose port and start server
 EXPOSE 8080
-CMD php artisan serve --host=0.0.0.0 --port=8080
+CMD php artisan optimize && php artisan serve --host=0.0.0.0 --port=8080
